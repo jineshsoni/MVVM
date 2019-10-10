@@ -1,0 +1,170 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'kotlin-kapt'
+
+ext.vCode = 1
+ext.major = "0"
+ext.minor = "0"
+ext.build = "0"
+ext.increment = "1"
+ext.vNameProd = major + "." + minor + "." + build
+ext.vNameStaging = major + "." + minor + "." + build
+ext.vNameLocal = major + "." + minor + "." + build + "." + increment
+ext.appName = "Boilerplate"
+
+android {
+    signingConfigs {
+        release {
+            keyAlias ''
+            keyPassword 'com.boilerplate'
+            storeFile file('../keys/signKey.jks')
+            storePassword 'com.boilerplate'
+        }
+    }
+
+    compileSdkVersion 29
+    flavorDimensions "default"
+
+    defaultConfig {
+        applicationId "com.thinkwik.boilerplate"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode vCode
+        versionName vNameProd
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
+        }
+        debug {
+            versionNameSuffix "-debug-build"
+            minifyEnabled false
+        }
+    }
+
+    productFlavors {
+        production {
+            buildConfigField "String", "varient", "\"production\""
+            buildConfigField "String", "BASE_URL", "\"https://prod.example.com/\""
+            buildConfigField 'boolean', 'ENABLE_LOG', 'false'
+            buildConfigField 'String', 'client_id', '\"someid\"'
+            buildConfigField 'String', 'client_secret', "\"somesecret\""
+            versionName = vNameProd
+        }
+        staging {
+            buildConfigField "String", "varient", "\"staging\""
+            buildConfigField "String", "BASE_URL", "\"https://staging.example.com/\""
+            buildConfigField 'boolean', 'ENABLE_LOG', 'true'
+            buildConfigField 'String', 'client_id', '\"someid\"'
+            buildConfigField 'String', 'client_secret', "\"somesecret\""
+            versionName = "staging-" + vNameStaging
+
+        }
+        development {
+            buildConfigField "String", "varient", "\"dev\""
+            buildConfigField "String", "BASE_URL", "\"https://newsapi.org/v2/\""
+            buildConfigField 'boolean', 'ENABLE_LOG', 'true'
+            buildConfigField 'String', 'client_id', "\"someid\""
+            buildConfigField 'String', 'client_secret', "\"somesecret\""
+            versionName = "dev-" + vNameLocal
+        }
+
+        applicationVariants.all { variant ->
+            variant.outputs.all { output ->
+                outputFileName = new File(appName + "-" + getNameDate() + "-build_V_" + variant.versionName + ".apk")
+            }
+        }
+    }
+
+    dataBinding {
+        enabled = true
+    }
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        exclude 'META-INF/proguard/androidx-annotations.pro'
+    }
+}
+
+static def getDate() {
+    return new Date().format('dd MMM, yyyy')
+}
+
+static def getNameDate() {
+    return new Date().format('dd-MMM-yyyy')
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.core:core-ktx:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
+
+    // Recycler view
+    implementation 'org.bitbucket.thinkwik:easyrecyclerview:1.0.0'
+
+//    // Google Map
+//    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+//
+//    // Google Place
+//    implementation 'com.google.android.libraries.places:places:2.0.0'
+
+    // Image Loading - Glide
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    kapt 'com.github.bumptech.glide:compiler:4.9.0'
+
+    // RX
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
+
+    // Retrofit
+    implementation "com.squareup.retrofit2:retrofit:2.4.0"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:2.3.0"
+    implementation "com.squareup.retrofit2:converter-gson:2.4.0"
+    implementation 'com.jakewharton.retrofit:retrofit2-rxjava2-adapter:1.0.0'
+
+    // GSON body parser
+    implementation 'com.google.code.gson:gson:2.8.5'
+
+    // CoRoutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
+
+    // Debugging - Stetho
+    implementation 'com.facebook.stetho:stetho:1.5.1'
+    implementation 'com.facebook.stetho:stetho-okhttp3:1.5.1'
+
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '28.0.0'
+            }
+        }
+    }
+}
+//apply plugin: 'com.google.gms.google-services'
+
